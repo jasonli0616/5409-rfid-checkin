@@ -1,6 +1,7 @@
 import sys
 import pygsheets
 import pymongo
+import time
 
 
 # Get values from command line
@@ -26,11 +27,25 @@ users_collection = database["users"]
 
 # Define functions to handle actions
 
-def check_in_user():
+def handle_check_in_or_out():
+    user = users_collection.find_one({"user_id": USER_ID})
+
+    if (user != None):
+        current_time = int(time.time())
+        if user["check_in_status"]:
+            check_out_user(user, current_time)
+        else:
+            check_in_user(user, current_time)
+
+    else:
+        print("ERROR: User with ID does not exist. Please create new user or use a different ID.")
+
+
+def check_in_user(user, current_time):
     ...
 
 
-def check_out_user():
+def check_out_user(user, current_time):
     ...
 
 
@@ -38,15 +53,15 @@ def create_user():
     if (users_collection.find_one({"user_id": USER_ID}) != None):
         print("ERROR: User with ID already exists. Please delete this user from MongoDB or use a new ID.")
     else:
-        users_collection.insert_one({"user_id": USER_ID, "name": FULL_NAME})
-        print(f"SUCCESS: User '{FULL_NAME}' has been created.")
+        users_collection.insert_one({"user_id": USER_ID, "name": FULL_NAME, "check_in_status": False})
+        handle_check_in_or_out()
+        print(f"SUCCESS: User '{FULL_NAME}' has been created and checked in.")
 
 
 
 # Actions list
 valid_actions = {
-    "checkin": check_in_user,
-    "checkout": check_out_user,
+    "checkin": handle_check_in_or_out,
     "create": create_user
 }
 
