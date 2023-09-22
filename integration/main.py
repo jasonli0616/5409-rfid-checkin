@@ -17,6 +17,7 @@ MONGODB_URI = sys.argv[6]
 # Configure Google Sheets
 sheets_client = pygsheets.authorize(client_secret=GOOGLE_SHEETS_SECRETS_PATH)
 sheet = sheets_client.open_by_key(GOOGLE_SHEETS_ID)
+# TODO: Integrate Google Sheets
 
 
 # Configure MongoDB
@@ -31,29 +32,40 @@ def handle_check_in_or_out():
     user = users_collection.find_one({"user_id": USER_ID})
 
     if (user != None):
-        current_time = int(time.time())
-        if user["check_in_status"]:
-            check_out_user(user, current_time)
+        if user["check_in_status"] == True:
+            check_out_user(user)
         else:
-            check_in_user(user, current_time)
+            check_in_user(user)
 
     else:
         print("ERROR: User with ID does not exist. Please create new user or use a different ID.")
 
 
-def check_in_user(user, current_time):
-    ...
+def check_in_user(user):
+    users_collection.update_one({"user_id": user["user_id"]}, 
+                                {"$set":
+                                    {"since": int(time.time()),
+                                    "check_in_status": True}})
+    print(f"SUCCESS: Checked in user '{user['name']}'.")
 
 
-def check_out_user(user, current_time):
-    ...
+def check_out_user(user):
+    current_time = int(time.time())
+    add_elapsed = current_time - user["since"]
+
+    users_collection.update_one({"user_id": user["user_id"]}, 
+                                {"$set":
+                                    {"since": current_time,
+                                    "check_in_status": False,
+                                    "elapsed_sec": user["elapsed_sec"] + add_elapsed}})
+    print(f"SUCCESS: Checked out user '{user['name']}'.")
 
 
 def create_user():
     if (users_collection.find_one({"user_id": USER_ID}) != None):
         print("ERROR: User with ID already exists. Please delete this user from MongoDB or use a new ID.")
     else:
-        users_collection.insert_one({"user_id": USER_ID, "name": FULL_NAME, "check_in_status": False})
+        users_collection.insert_one({"user_id": USER_ID, "name": FULL_NAME, "check_in_status": False, "since": int(time.time()), "elapsed_sec": 0})
         handle_check_in_or_out()
         print(f"SUCCESS: User '{FULL_NAME}' has been created and checked in.")
 
