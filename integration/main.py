@@ -35,7 +35,11 @@ def check_out_user():
 
 
 def create_user():
-    ...
+    if (users_collection.find_one({"user_id": USER_ID}) != None):
+        print("ERROR: User with ID already exists. Please delete this user from MongoDB or use a new ID.")
+    else:
+        users_collection.insert_one({"user_id": USER_ID, "name": FULL_NAME})
+        print(f"SUCCESS: User '{FULL_NAME}' has been created.")
 
 
 
@@ -45,3 +49,6 @@ valid_actions = {
     "checkout": check_out_user,
     "create": create_user
 }
+
+# Run action
+valid_actions[ACTION]()
