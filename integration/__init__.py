@@ -6,12 +6,9 @@ import json
 
 
 # Get values from command line
-ACTION = sys.argv[1]
-USER_ID = sys.argv[2]
-FULL_NAME = sys.argv[3]
-GOOGLE_SHEETS_SECRETS_PATH = sys.argv[4]
-GOOGLE_SHEETS_ID = sys.argv[5]
-MONGODB_URI = sys.argv[6]
+GOOGLE_SHEETS_SECRETS_PATH = sys.argv[1]
+GOOGLE_SHEETS_ID = sys.argv[2]
+MONGODB_URI = sys.argv[3]
 
 
 
@@ -19,7 +16,6 @@ MONGODB_URI = sys.argv[6]
 sheets_client = pygsheets.authorize(client_secret=GOOGLE_SHEETS_SECRETS_PATH)
 sheet = sheets_client.open_by_key(GOOGLE_SHEETS_ID)
 worksheet = sheet.sheet1
-# TODO: Integrate Google Sheets
 
 
 # Configure MongoDB
@@ -30,8 +26,8 @@ users_collection = database["users"]
 
 # Define functions to handle actions
 
-def handle_check_in_or_out():
-    user = users_collection.find_one({"user_id": USER_ID})
+def handle_check_in_or_out(user_id):
+    user = users_collection.find_one({"user_id": user_id})
 
     if (user != None):
         if user["check_in_status"] == True:
@@ -40,7 +36,13 @@ def handle_check_in_or_out():
             check_in_user(user)
 
     else:
-        print("ERROR: User with ID does not exist. Please create new user or use a different ID.")
+        print("User not found. Creating new user...")
+        user_name = input("Enter user name: ")
+        create_user(user_id, user_name)
+
+    # Update list on Google Sheets to be handled by Google Apps Script
+    first_cell = worksheet.cell("A1")
+    first_cell.set_value(json.dumps(get_all_users()))
 
 
 def check_in_user(user):
@@ -66,13 +68,13 @@ def check_out_user(user):
     print(f"SUCCESS: Checked out user '{user['name']}'.")
 
 
-def create_user():
-    if (users_collection.find_one({"user_id": USER_ID}) != None):
+def create_user(user_id, user_name):
+    if (users_collection.find_one({"user_id": user_id}) != None):
         print("ERROR: User with ID already exists. Please delete this user from MongoDB or use a new ID.")
     else:
-        users_collection.insert_one({"user_id": USER_ID, "name": FULL_NAME, "check_in_status": False, "since": int(time.time()), "elapsed_sec": 0, "check_ins": [], "check_outs": []})
+        users_collection.insert_one({"user_id": user_id, "name": user_name, "check_in_status": False, "since": int(time.time()), "elapsed_sec": 0, "check_ins": [], "check_outs": []})
         handle_check_in_or_out()
-        print(f"SUCCESS: User '{FULL_NAME}' has been created and checked in.")
+        print(f"SUCCESS: User '{user_name}' has been created and checked in.")
 
 
 def get_all_users():
@@ -81,17 +83,3 @@ def get_all_users():
         del user["_id"]
     return users
 
-
-
-# Actions list
-valid_actions = {
-    "checkin": handle_check_in_or_out,
-    "create": create_user
-}
-
-# Run action
-valid_actions[ACTION]()
-
-# Update list on Google Sheets to be handled by Google Apps Script
-first_cell = worksheet.cell("A1")
-first_cell.set_value(json.dumps(get_all_users()))
