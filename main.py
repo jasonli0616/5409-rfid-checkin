@@ -54,12 +54,9 @@ def loop():
         # Sleep before clearing console
         time.sleep(10)
         os.system("clear")
-        
-
-    return False
+        print("Ready to scan...")
 
 if __name__ == '__main__':
     setup()
-    found = loop()
-    while not found:
-        found = loop()
+    while True:
+        loop()

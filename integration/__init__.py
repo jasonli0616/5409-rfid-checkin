@@ -69,12 +69,9 @@ def check_out_user(user):
 
 
 def create_user(user_id, user_name):
-    if (users_collection.find_one({"user_id": user_id}) != None):
-        print("ERROR: User with ID already exists. Please delete this user from MongoDB or use a new ID.")
-    else:
-        users_collection.insert_one({"user_id": user_id, "name": user_name, "check_in_status": False, "since": int(time.time()), "elapsed_sec": 0, "check_ins": [], "check_outs": []})
-        handle_check_in_or_out()
-        print(f"SUCCESS: User '{user_name}' has been created and checked in.")
+    users_collection.insert_one({"user_id": user_id, "name": user_name, "check_in_status": False, "since": int(time.time()), "elapsed_sec": 0, "check_ins": [], "check_outs": []})
+    handle_check_in_or_out()
+    print(f"SUCCESS: User '{user_name}' has been created and checked in.")
 
 
 def get_all_users():
