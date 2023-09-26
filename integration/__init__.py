@@ -1,14 +1,15 @@
-import sys
 import pygsheets
 import pymongo
 import time
 import json
 
 
-# Get values from command line
-GOOGLE_SHEETS_SECRETS_PATH = sys.argv[1]
-GOOGLE_SHEETS_ID = sys.argv[2]
-MONGODB_URI = sys.argv[3]
+# Get values
+with open("config.json", "r") as f:
+    json_data = json.load(f)
+    GOOGLE_SHEETS_SECRETS_PATH = json_data["GOOGLE_SHEETS_SECRETS_PATH"]
+    GOOGLE_SHEETS_ID = json_data["GOOGLE_SHEETS_ID"]
+    MONGODB_URI = json_data["MONGODB_URI"]
 
 
 
