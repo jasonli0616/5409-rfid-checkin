@@ -71,7 +71,7 @@ def check_out_user(user):
 
 def create_user(user_id, user_name):
     users_collection.insert_one({"user_id": user_id, "name": user_name, "check_in_status": False, "since": int(time.time()), "elapsed_sec": 0, "check_ins": [], "check_outs": []})
-    handle_check_in_or_out()
+    handle_check_in_or_out(user_id)
     print(f"SUCCESS: User '{user_name}' has been created and checked in.")
 
 

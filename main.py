@@ -51,8 +51,7 @@ def loop():
         # Send to backend
         integration.handle_check_in_or_out(user_id)
 
-        # Sleep before clearing console
-        time.sleep(10)
+        # Clear console
         os.system("clear")
         print("Ready to scan...")
 
