@@ -2,6 +2,7 @@ import pygsheets
 import pymongo
 import time
 import json
+import lcdscreen
 
 
 # Get values
@@ -37,8 +38,7 @@ def handle_check_in_or_out(user_id):
             check_in_user(user)
 
     else:
-        print("User not found. Creating new user...")
-        user_name = input("Enter user name: ")
+        user_name = input("Create new user, enter name: ")
         create_user(user_id, user_name)
 
     # Update list on Google Sheets to be handled by Google Apps Script
@@ -53,7 +53,7 @@ def check_in_user(user):
                                     "check_in_status": True}})
     users_collection.update_one({"user_id": user["user_id"]}, {"$push": {"check_ins": int(time.time())}})
     
-    print(f"SUCCESS: Checked in user '{user['name']}'.")
+    lcdscreen.write_text(f"Checked in user '{user['name']}'.")
 
 
 def check_out_user(user):
@@ -66,13 +66,13 @@ def check_out_user(user):
                                     "check_in_status": False,
                                     "elapsed_sec": user["elapsed_sec"] + add_elapsed}})
     users_collection.update_one({"user_id": user["user_id"]}, {"$push": {"check_outs": int(time.time())}})
-    print(f"SUCCESS: Checked out user '{user['name']}'.")
+    lcdscreen.write_text(f"Checked out user '{user['name']}'.")
 
 
 def create_user(user_id, user_name):
     users_collection.insert_one({"user_id": user_id, "name": user_name, "check_in_status": False, "since": int(time.time()), "elapsed_sec": 0, "check_ins": [], "check_outs": []})
     handle_check_in_or_out(user_id)
-    print(f"SUCCESS: User '{user_name}' has been created and checked in.")
+    lcdscreen.write_text(f"User '{user_name}' has been created and checked in.")
 
 
 def get_all_users():
