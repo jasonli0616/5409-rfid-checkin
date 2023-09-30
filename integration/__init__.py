@@ -29,6 +29,8 @@ users_collection = database["users"]
 # Define functions to handle actions
 
 def handle_check_in_or_out(user_id):
+    lcdscreen.clear_text()
+    
     user = users_collection.find_one({"user_id": user_id})
 
     if (user != None):
@@ -38,6 +40,7 @@ def handle_check_in_or_out(user_id):
             check_in_user(user)
 
     else:
+        lcdscreen.write_text("Creating new user")
         user_name = input("Create new user, enter name: ")
         create_user(user_id, user_name)
 
@@ -53,7 +56,7 @@ def check_in_user(user):
                                     "check_in_status": True}})
     users_collection.update_one({"user_id": user["user_id"]}, {"$push": {"check_ins": int(time.time())}})
     
-    lcdscreen.write_text(f"Checked in user '{user['name']}'.")
+    lcdscreen.write_text("Checked in", user['name'])
 
 
 def check_out_user(user):
@@ -66,13 +69,14 @@ def check_out_user(user):
                                     "check_in_status": False,
                                     "elapsed_sec": user["elapsed_sec"] + add_elapsed}})
     users_collection.update_one({"user_id": user["user_id"]}, {"$push": {"check_outs": int(time.time())}})
-    lcdscreen.write_text(f"Checked out user '{user['name']}'.")
+    lcdscreen.write_text(f"Checked out", user['name'])
 
 
 def create_user(user_id, user_name):
+    if user_name == "cancel":
+        return
     users_collection.insert_one({"user_id": user_id, "name": user_name, "check_in_status": False, "since": int(time.time()), "elapsed_sec": 0, "check_ins": [], "check_outs": []})
     handle_check_in_or_out(user_id)
-    lcdscreen.write_text(f"User '{user_name}' has been created and checked in.")
 
 
 def get_all_users():

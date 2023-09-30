@@ -2,7 +2,6 @@ import binascii
 
 from pn532pi import Pn532, pn532, Pn532I2c
 
-import os
 import integration
 import lcdscreen
 
@@ -40,7 +39,6 @@ def loop():
 
         # Check in user
         user_id = str(binascii.hexlify(uid))
-        lcdscreen.write_text(f"Scanned ID: {user_id}")
 
         # Send to backend
         integration.handle_check_in_or_out(user_id)
@@ -50,6 +48,7 @@ def loop():
         lcdscreen.write_text("Ready to scan...")
 
 if __name__ == '__main__':
+    lcdscreen.write_text("Initializing...")
     setup()
     while True:
         loop()
